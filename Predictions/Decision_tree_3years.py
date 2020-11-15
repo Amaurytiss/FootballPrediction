@@ -13,32 +13,24 @@ import statistics
 #%%Ouverture du dataset, suppression des colonnes de texte, reset des indices
 #supression de la première journée où il n'y a encore aucune stats
 df = pd.read_csv('../CleanedDatasets/2007_2008.csv')
-df = df.drop(['Unnamed: 0','Div','Date'],axis=1)
+#%%
+df2 = pd.read_csv('../DataSets/2007_2008.csv')
+df_cote = pd.DataFrame()
+df_cote['B365H']=df2['B365H']
+df_cote['B365D']=df2['B365D']
+df_cote['B365A']=df2['B365A']
+df = df.drop(['Unnamed: 0','Div','Date','HomeTeam','AwayTeam'],axis=1)
 df = df.iloc[10:]
 df = df.reset_index(drop=True)
 
+df_cote = df_cote.iloc[10:]
+df_cote = df_cote.reset_index(drop=True)
+
+
+#%%prendre les cotes d'un site de pari 
+
+
 #%%Création des deux dico faisant correspondre équipes et id
-id_team = {}
-liste_des_clubs = []
-for i in range(len(df)):
-    if df['HomeTeam'][i] not in liste_des_clubs:
-        liste_des_clubs.append(df['HomeTeam'][i])
-    if df['AwayTeam'][i] not in liste_des_clubs:
-        liste_des_clubs.append(df['AwayTeam'][i])
-
-for i in range(len(liste_des_clubs)):
-    id_team[liste_des_clubs[i]]=i+1
-
-name_by_id={}
-for keys in id_team.keys():
-    name_by_id[id_team[keys]]=keys
-#%% modification du dataset pour ne plus avoir de str
-def nom_vers_num(dataset):
-    for i in range(len(df)):
-        df['HomeTeam'][i]=id_team[df['HomeTeam'][i]]
-        df['AwayTeam'][i]=id_team[df['AwayTeam'][i]]
-#%%application de la fonction en place
-nom_vers_num(df)
 #%% nb de matchs pris en compte dans train
 nb_train = 300
 
@@ -53,16 +45,18 @@ data_test = np.array(df.drop(columns='FTR')[nb_train:])
 
 data_train=list(data_train)
 labels_train=list(labels_train)
-
+#%%
+df_cote_test = df_cote[nb_train:]
+#%%
 #clf=tree.DecisionTreeClassifier()
 clf= RandomForestClassifier(n_estimators=100)
 clf=clf.fit(data_train,labels_train)
-score = clf.score(data_test,labels_test)
+clf.score(data_test,labels_test)
 #%% plusieurs random_forest avec une boucle
 best_tree = 0
 current_best_score = 0
 list_score=[]
-for i in range(10):
+for i in range(200):
     labels_train = np.array(df['FTR'][:nb_train])
     data_train = np.array(df.drop(columns='FTR')[:nb_train])
 
@@ -74,7 +68,7 @@ for i in range(10):
     labels_train=list(labels_train)
 
     #clf=tree.DecisionTreeClassifier()
-    clf= RandomForestClassifier(n_estimators=500)
+    clf= RandomForestClassifier(n_estimators=100)
     clf=clf.fit(data_train,labels_train)
     score = clf.score(data_test,labels_test)
     list_score.append(score)
@@ -82,9 +76,9 @@ for i in range(10):
         current_best_score=score
         best_tree=clf
         print(current_best_score)
-print(statistics.mean(list_score))
+print("average",statistics.mean(list_score))
 #%% sauvegarde de l'arbre best tree
-dump(best_tree, 'foretV5_300iter_100est_noshuffle_57.joblib')
+dump(best_tree, 'foret_without_teamsV1_100iter_100est_noshuffle_54.joblib')
 
 
 #%% avec shuffle :
@@ -152,6 +146,19 @@ clf.score(X_test,y_test)
 #from joblib import dump, load
 #dump(clf, 'foretV2.joblib') 
 #%%
-clf = load('foretV1.joblib')
+def simule_annee_pari(classifier, df_cote_test, X_test, y_test, basebet=10):
+    bankroll = 0
+    predictions = classifier.predict(X_test)
+    for i in range(len(y_test)):
+        if predictions[i]==y_test[i]:
+            if predictions[i]==2:
+                bankroll+=basebet*df_cote_test['B365H'].iloc[i]
+            if predictions[i]==1:
+                bankroll+=basebet*df_cote_test['B365D'].iloc[i]
+            if predictions[i]==0:
+                bankroll+=basebet*df_cote_test['B365A'].iloc[i]
+        
+    return (bankroll-len(y_test)*basebet)
+
 #%%
-clf.score(X_test,y_test)
+print(simule_annee_pari(best_tree,df_cote_test,data_test,labels_test))

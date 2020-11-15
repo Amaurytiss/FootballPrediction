@@ -13,32 +13,11 @@ import statistics
 #%%Ouverture du dataset, suppression des colonnes de texte, reset des indices
 #supression de la première journée où il n'y a encore aucune stats
 df = pd.read_csv('../CleanedDatasets/2007_2008.csv')
-df = df.drop(['Unnamed: 0','Div','Date'],axis=1)
+df = df.drop(['Unnamed: 0','Div','Date','HomeTeam','AwayTeam'],axis=1)
 df = df.iloc[10:]
 df = df.reset_index(drop=True)
 
 #%%Création des deux dico faisant correspondre équipes et id
-id_team = {}
-liste_des_clubs = []
-for i in range(len(df)):
-    if df['HomeTeam'][i] not in liste_des_clubs:
-        liste_des_clubs.append(df['HomeTeam'][i])
-    if df['AwayTeam'][i] not in liste_des_clubs:
-        liste_des_clubs.append(df['AwayTeam'][i])
-
-for i in range(len(liste_des_clubs)):
-    id_team[liste_des_clubs[i]]=i+1
-
-name_by_id={}
-for keys in id_team.keys():
-    name_by_id[id_team[keys]]=keys
-#%% modification du dataset pour ne plus avoir de str
-def nom_vers_num(dataset):
-    for i in range(len(df)):
-        df['HomeTeam'][i]=id_team[df['HomeTeam'][i]]
-        df['AwayTeam'][i]=id_team[df['AwayTeam'][i]]
-#%%application de la fonction en place
-nom_vers_num(df)
 #%% nb de matchs pris en compte dans train
 nb_train = 300
 
@@ -57,12 +36,12 @@ labels_train=list(labels_train)
 #clf=tree.DecisionTreeClassifier()
 clf= RandomForestClassifier(n_estimators=100)
 clf=clf.fit(data_train,labels_train)
-score = clf.score(data_test,labels_test)
+clf.score(data_test,labels_test)
 #%% plusieurs random_forest avec une boucle
 best_tree = 0
 current_best_score = 0
 list_score=[]
-for i in range(10):
+for i in range(300):
     labels_train = np.array(df['FTR'][:nb_train])
     data_train = np.array(df.drop(columns='FTR')[:nb_train])
 
@@ -74,7 +53,7 @@ for i in range(10):
     labels_train=list(labels_train)
 
     #clf=tree.DecisionTreeClassifier()
-    clf= RandomForestClassifier(n_estimators=500)
+    clf= RandomForestClassifier(n_estimators=100)
     clf=clf.fit(data_train,labels_train)
     score = clf.score(data_test,labels_test)
     list_score.append(score)
