@@ -138,11 +138,6 @@ print('avg score without the new feature :', sum(scores_withoutfeature)/len(scor
 
 
 #%%
-for i in range(10):
-    clf = RandomForestClassifier(n_estimators=100)
-    clf.fit(X_train2,y_train2)
-    print(clf.score(X_test2,y_test2))
-#%%
 best_tree = 0
 current_best_score = 0
 for i in range(100):
@@ -156,7 +151,6 @@ for i in range(100):
         best_tree=clf
         print(current_best_score)
 #%%
-best_tree.score(X_test2,y_test2)
 #%%
 clf.feature_importances_
 # %%
