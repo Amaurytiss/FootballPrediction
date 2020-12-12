@@ -1,4 +1,5 @@
-﻿import pandas as pd
+﻿#%%
+import pandas as pd
 from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
@@ -53,3 +54,4 @@ df0.to_csv('DatasetsFeatures/2015_2016_features.csv')
 df1.to_csv('DatasetsFeatures/2016_2017_features.csv')
 df2.to_csv('DatasetsFeatures/2017_2018_features.csv')
 df3.to_csv('DatasetsFeatures/2018_2019_features.csv')
+# %%

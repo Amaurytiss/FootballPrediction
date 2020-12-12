@@ -2,10 +2,14 @@
 import pandas as pd
 from sklearn.pipeline import make_pipeline
 from sklearn.pipeline import Pipeline
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 import numpy as np
 import matplotlib.pyplot as plt
 from FormeAwayHome import add_win_streak_to_dataset
+from sklearn.metrics import plot_confusion_matrix
 
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.pipeline import FeatureUnion, Pipeline, make_union
@@ -88,10 +92,10 @@ df1 = df1.dropna()
 df2 = df2.dropna()
 df3 = df3.dropna()
 
-df1 = df1.reset_index(drop =True)
-df2 = df2.reset_index(drop =True)
-df3 = df3.reset_index(drop =True)
-df0 = df0.reset_index(drop =True)
+df1 = df1.reset_index(drop = True)
+df2 = df2.reset_index(drop = True)
+df3 = df3.reset_index(drop = True)
+df0 = df0.reset_index(drop = True)
 df0 = df0.astype({'FTR': 'int64'})
 
 frames = [df0,df1]
@@ -120,7 +124,7 @@ def teste_tout(df,df2,n_forest):
         X_test,y_test   = create_X_y(df2,budget = budget,fifa = fifa,streak = streak,public = public)
 
         scores = []
-        for j in range(1,n_forest):
+        for _ in range(1,n_forest):
             clf = RandomForestClassifier(n_estimators=100)
             clf.fit(X_train,y_train)
             scores.append(clf.score(X_test,y_test))
@@ -130,10 +134,14 @@ def teste_tout(df,df2,n_forest):
     
     return partition_score
 #%%
-power = teste_tout(df,df2,50)
+power = teste_tout(df,df2,3)
 #%%
-X_train,y_train = create_X_y(df ,budget=True,fifa=True)
-X_test,y_test   = create_X_y(df2,budget=True,fifa=True)
+X_train,y_train = create_X_y(df ,budget=True,public=True)
+X_test,y_test   = create_X_y(df2,budget=True,public=True)
+#%%
+X_train,y_train = create_X_y(df )
+X_test,y_test   = create_X_y(df2)
+#%%
 clf = RandomForestClassifier()
 
 scores = []
@@ -148,13 +156,81 @@ for i in range(1,21):
 print("avg",sum(scores)/len(scores))
 
 #%%Full Features
+clf = RandomForestClassifier()
+clf.fit(X_train,y_train)
+clf.score(X_test,y_test)
 
 #%%Plot features importance
-plt.bar(x=df.columns[1:],height=clf.feature_importances_,width=0.5,bottom=None, align='center')
-plt.xticks(range(len(df.columns[1:])), df.columns[1:], rotation='vertical')
+plt.bar(x=basic_dataset(df).columns,height=clf.feature_importances_,width=0.5,bottom=None, align='center')
+plt.xticks(range(len(basic_dataset(df).columns)), basic_dataset(df).columns, rotation='vertical')
 plt.show()
 
 
 #%%
+X_train,y_train = create_X_y(df0[:300])
+X_test,y_test = create_X_y(df0[300:])
 
 
+# %%
+"""premier test du Classifier Random Forest"""
+clf = RandomForestClassifier()
+clf.fit(X_train,y_train)
+print("score :",clf.score(X_test,y_test))
+plot_confusion_matrix(clf,X_test,y_test)
+# %%
+"""premier test du Classifier Gradient Boosting"""
+clf = GradientBoostingClassifier(max_depth=5, n_estimators=100,learning_rate=0.05)
+clf.fit(X_train,y_train)
+print("score :",clf.score(X_test,y_test))
+plot_confusion_matrix(clf,X_test,y_test)
+# %%
+"""premier test du Classifier Arbre de décision"""
+clf = DecisionTreeClassifier()
+clf.fit(X_train,y_train)
+print("score :",clf.score(X_test,y_test))
+plot_confusion_matrix(clf,X_test,y_test)
+# %%
+"""premier test du Classifier Regression logistique"""
+clf = LogisticRegression()
+clf.fit(X_train,y_train)
+print("score :",clf.score(X_test,y_test))
+plot_confusion_matrix(clf,X_test,y_test)
+# %%
+"""Premier test du Classifier SVM"""
+clf = SVC()
+clf.fit(X_train,y_train)
+print("score :",clf.score(X_test,y_test))
+plot_confusion_matrix(clf,X_test,y_test)
+
+# %%
+plot_confusion_matrix(clf,X_test,y_test)
+
+#%%
+prediction = clf.predict(X_test)
+# %%
+for idx in range(300,370):
+    win_team = 0
+    pred_team = 0
+    if y_test[idx]==2:
+        win_team=df0['HomeTeam'].iloc[idx]
+    if y_test[idx]==1:
+        win_team = "Draw"
+    if y_test[idx]==0:
+        win_team=df0['AwayTeam'].iloc[idx]
+    
+    if prediction[idx-300]==0:
+        pred_team = df0['AwayTeam'].iloc[idx]
+    if prediction[idx-300]==2:
+        pred_team = df0['HomeTeam'].iloc[idx]
+    if prediction[idx-300]==1:
+        pred_team = 'Draw'
+
+    print(df0['HomeTeam'].iloc[idx]+" - "+df0['AwayTeam'].iloc[idx]+" | algo predit : "+pred_team+" | le vrai résultat est : "+win_team+"\n")
+
+# %%
+matchs_psg = df0[300:].loc[(df0['HomeTeam']=='Paris SG') | (df0['AwayTeam']=='Paris SG')]
+# %%
+X_test,y_test = create_X_y(matchs_psg)
+# %%
+clf.score(X_test,y_test)
+# %%
