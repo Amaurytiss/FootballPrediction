@@ -19,8 +19,11 @@ from sklearn.preprocessing import FunctionTransformer
 
 def basic_dataset(X):
     return X[['HTS',
-       'HTST', 'HTW', 'HTD', 'HTL', 'HTF', 'HTY', 'HTR', 'HTG', 'ATS', 'ATST',
-       'ATW', 'ATD', 'ATL', 'ATF', 'ATY', 'ATR', 'ATG']]
+       'HTST', 'HTW', 'HTD', 'HTL', 'HTG', 'ATS', 'ATST',
+       'ATW', 'ATD', 'ATL', 'ATG']]
+
+def foul(X):
+    return X[['HTF', 'HTY', 'HTR','ATF', 'ATY', 'ATR']]
 
 def budget(X):
     return X[['HB', 'AB']]
@@ -39,6 +42,7 @@ def ftr(X):
 # pipeline to get all tfidf and word count for first column
 
 pipeline_main_dataset = Pipeline([('main_selection', FunctionTransformer(basic_dataset))])
+pipeline_foul = Pipeline([('foul_selection', FunctionTransformer(foul))])
 pipeline_budget = Pipeline([('budget_selection', FunctionTransformer(budget))])
 pipeline_FIFA = Pipeline([('FIFA_selection', FunctionTransformer(fifa))])
 pipeline_streak = Pipeline([('streak_selection', FunctionTransformer(streak))])
@@ -46,10 +50,12 @@ pipeline_public = Pipeline([('budget_selection', FunctionTransformer(public))])
 pipeline_lables = Pipeline([('labels_selection', FunctionTransformer(ftr))])
 
 
-def create_X_y(datafram,main_data = True, budget=False, fifa = False, streak = False, public= False):
+def create_X_y(datafram,main_data = True, foul=True,budget=False, fifa = False, streak = False, public= False):
     L=[]
     if main_data:
         L.append(('main_data',pipeline_main_dataset))
+    if foul:
+        L.append(('foul',pipeline_foul))
     if budget:
         L.append(('budget',pipeline_budget))
     if fifa:
@@ -102,8 +108,19 @@ frames = [df0,df1]
 df = pd.concat(frames,ignore_index=True)
 
 #%%
+dico = {1:'budget',2:'fifa',3:'streak',4:'public'}
+dico_f={'[]':'dataset initial'}
+parties = partiesliste([1,2,3,4])
+parties.pop(0)
+for i in parties:
+    aux = []
+    for j in i:
+        aux.append(dico[j])
+    dico_f[str(i)]=str(aux)
+
 def teste_tout(df,df2,n_forest):
     L = partiesliste([1,2,3,4])
+    
     partition_score = {}
     #budget=False, fifa = False, streak = False, public= False
     for i in range(len(L)):
@@ -128,21 +145,26 @@ def teste_tout(df,df2,n_forest):
             clf = RandomForestClassifier(n_estimators=100)
             clf.fit(X_train,y_train)
             scores.append(clf.score(X_test,y_test))
-        print("avg",L[i],sum(scores)/len(scores))
+        print("score moyen avec :",dico_f[str(L[i])],':',sum(scores)/len(scores))
 
         partition_score[str(L[i])] = sum(scores)/len(scores)
     
     return partition_score
 #%%
+
+#%%
+
 power = teste_tout(df,df2,3)
 #%%
 X_train,y_train = create_X_y(df ,budget=True,public=True)
 X_test,y_test   = create_X_y(df2,budget=True,public=True)
 #%%
+X_train,y_train = create_X_y(df ,foul=False)
+X_test,y_test   = create_X_y(df2,foul=False)
+#%%
 X_train,y_train = create_X_y(df )
 X_test,y_test   = create_X_y(df2)
 #%%
-clf = RandomForestClassifier()
 
 scores = []
 for i in range(1,21):
@@ -232,5 +254,57 @@ matchs_psg = df0[300:].loc[(df0['HomeTeam']=='Paris SG') | (df0['AwayTeam']=='Pa
 # %%
 X_test,y_test = create_X_y(matchs_psg)
 # %%
-clf.score(X_test,y_test)
+proba_predic=clf.predict_proba(X_test)
+#%%
+for idx,i in enumerate(y_test):
+    win_team = 0
+    if y_test[idx]==2:
+        win_team=df2['HomeTeam'].iloc[idx]
+    if y_test[idx]==1:
+        win_team = "Draw"
+    if y_test[idx]==0:
+        win_team=df2['AwayTeam'].iloc[idx]
+    aux = np.flip(proba_predic[idx])
+    print(df2['HomeTeam'].iloc[idx]+" - "+df2['AwayTeam'].iloc[idx]+" // prédictions: "+df2['HomeTeam'].iloc[idx]+'= '+str(aux[0])+" | Draw= "+str(aux[1])+ " | "+df2['AwayTeam'].iloc[idx]+"= "+str(aux[2])+" // Le vrai résultat est "+win_team+"\n")
+# %%
+df2_cotes_raw = pd.read_csv('../DataSets/2017_2018.csv')
+df2_cote = pd.DataFrame()
+df2_cote['B365H']=df2_cotes_raw['B365H']
+df2_cote['B365D']=df2_cotes_raw['B365D']
+df2_cote['B365A']=df2_cotes_raw['B365A']
+
+df2_cote = df2_cote.iloc[50:]
+df2_cote = df2_cote.reset_index(drop=True)
+
+df3_cotes_raw = pd.read_csv('../DataSets/2018_2019.csv')
+df3_cote = pd.DataFrame()
+df3_cote['B365H']=df3_cotes_raw['B365H']
+df3_cote['B365D']=df3_cotes_raw['B365D']
+df3_cote['B365A']=df3_cotes_raw['B365A']
+
+df3_cote = df3_cote.iloc[50:]
+df3_cote = df3_cote.reset_index(drop=True)
+
+#%%
+def simule_annee_pari(classifier, df_cote_test, X_test, y_test, basebet=10):
+    bankroll = 0
+    predictions = classifier.predict(X_test)
+    for i in range(len(y_test)):
+        if predictions[i]==y_test[i]:
+            if predictions[i]==2:
+                bankroll+=basebet*df_cote_test['B365H'].iloc[i]
+            if predictions[i]==1:
+                bankroll+=basebet*df_cote_test['B365D'].iloc[i]
+            if predictions[i]==0:
+                bankroll+=basebet*df_cote_test['B365A'].iloc[i]
+        
+    return (bankroll-len(y_test)*basebet)
+
+    for i in range(10):
+    clf = RandomForestClassifier()
+    clf.fit(X_train,y_train)
+    
+    print("Forest n°"+str(i)+" - mise de 10 € sur chaque paris - gain final : "+str(simule_annee_pari(clf, df2_cote,X_test,y_test))+" €") 
+# %%
+rec = clf
 # %%
