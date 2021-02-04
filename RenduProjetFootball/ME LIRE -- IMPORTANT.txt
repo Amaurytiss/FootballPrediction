@@ -1,0 +1,25 @@
+Bonjour à vous, merci d'avoir pris le temps de regarder notre modeste travail qui nous est tout de même précieux.
+
+Il y a beaucoup de codes différents, avec toutes les pistes que nous avons essayées, les features que nous avons ajoutées etc
+
+
+-----
+LE NOTEBOOK FootballPrediction_rendu.ipynb PRESENT A LA RACINE EST CELUI A REGARDER POUR AVOIR UN APPERCU DE NOS MEILLEURS RESULTATS ET ETAT DU PROJET A LA FIN
+----
+
+Le Notebook AnalyseEtTraitementdataset.ipynb contient uen analyse des données, ainsi qu'un préparation des datasets pour la modélisation.
+----
+
+Vous pouvez aussi tester les algos de webscrapping qui sont pour l'instant assez simples, vous devez pour cela installer selenium et avoir chrome sur votre machine.
+
+----
+
+Vous pouvez bien sur vous aventurer dans les sous dossiers qui contiennent nos autres codes, mais ceux ci ne sont pas des notebooks et ne sont pas mis en forme et sont très brouillons, car ce sont nos divers tests.
+
+Merci
+
+Code intégralement écrit par :
+
+Amaury TISSEAU
+Gaspard CANEVET
+
