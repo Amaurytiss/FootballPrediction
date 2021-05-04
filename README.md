@@ -19,7 +19,7 @@ Predicting the outcome of a football game is in fact a classification problem, w
 
 To train our models, we first need to have our data ready. For a football game, we cannot know in advance how many goals or shoot every team is going to score. So we chose to represent each game by the average stats over the season of both teams playing. The processed dataset would look like that (only the first columns here)
 
-[[https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/Capture.JPG|alt=dataset]]
+![Alt dataset](https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/Capture.JPG)
 
 ## Models
 
@@ -28,29 +28,29 @@ We used many different Machine learning models, but the more efficient one on th
 Here is a confusion matrix for one of our Random Forest model. 2 is for HomeTeam win, 1 is for Draw and 0 is for AwayTeam win
 The score is the sklearn.score for classifier, which is the harsh accuracy.
 
-[[https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/forest.jpg|alt=forest]]
+![Alt forest](https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/forest.jpg)
 
 ## Adding Features
 
 To improve our results, we thought about adding some more features to our datasets, to see if we could find one which allows our model to be more accurate. We tried the Win / loose streak of each team, the year budget of the team, the FIFA videogames score of each teams, and the average public of teams. We tried every possible combination added to the original dataset.
 
-[[https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/add_feat.JPG]]
+![Alt features](https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/add_feat.JPG)
 
 So best combination was the one with the budget and the public. So we kept using this combination.
 
 Here are some predictions to show how we could use them
 
-[[https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/predic.JPG]]
+![Alt pred](https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/predic.JPG)
 
 If we wanted to follow the predictions as some advices, we would need more than only a simple result. That's why we also used the RandomForestClassfier.proba_predict to have the certainty of the prediction.
 
-[[https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/proba.JPG]]
+![Alt prob](https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/proba.JPG)
 
 ## Betting simulation
 
 In order to test our results, we tryed to simulate a year of betting on our predictions. We juste used the odds from Bet356 which were already in our datasets. Here are 10 simulations where we bet 10€ on every game.
 
-[[https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/simu.JPG]]
+![Alt simu](https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/simu.JPG)
 
 We can see that 9 out of 10 times we are winning money, but there is once where we loose. This shows that despite the results we obtain, it is still too uncertain to really earn money with that.
 
@@ -58,5 +58,5 @@ We can see that 9 out of 10 times we are winning money, but there is once where 
 
 If we wanted to use these algorithms in real life, we would need to see which is the best betting site for each game. So we decided to do some web scrapping algorithms that can get the odds from different websites directly. We did that using selenium and chromedriver
 
-[[https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/odd.JPG]]
+![Alt odd](https://github.com/Amaurytiss/FootballPrediction/blob/main/photos%20wiki/odd.JPG)
 
